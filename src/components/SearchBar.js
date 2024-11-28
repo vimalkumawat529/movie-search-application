@@ -14,7 +14,7 @@ import debounce from "lodash.debounce";
 import { Link } from "react-router-dom";
 
 const SearchBar = () => {
-  const [query, setQuery] = useState(localStorage.getItem("query") || "");
+  const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
 
   const dispatch = useDispatch();
@@ -47,13 +47,19 @@ const SearchBar = () => {
   const handleInputChange = (e) => {
     const newQuery = e.target.value;
     setQuery(newQuery); // Update query state
-    localStorage.setItem("query", newQuery); // Store query in localStorage
 
     if (newQuery.trim()) {
       debouncedSearchQuery(newQuery, page); // Trigger search based on input
     } else {
-      // Handle case when query is cleared
-      dispatch(fetchMovies({ query: "", page: 1 })); // Fetch data with an empty query
+      dispatch(fetchMovies({ query: "", page: 1 }));
+    }
+  };
+
+  // Handle input blur event (when user clicks outside)
+  const handleBlur = () => {
+    if (!query.trim()) {
+      // If the query is empty, call the API to fetch movies with empty query
+      dispatch(fetchMovies({ query: "", page: 1 }));
     }
   };
 
@@ -96,6 +102,7 @@ const SearchBar = () => {
           placeholder="Search movies name"
           value={query}
           onChange={handleInputChange}
+          onBlur={handleBlur}
           fullWidth
           sx={{
             marginBottom: 2,
