@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Box,
@@ -22,29 +22,24 @@ const SearchBar = () => {
     (state) => state.movies
   );
 
-  // Debounced function for search query to reduce API calls
-  const debouncedSearchQuery = useCallback(
-    debounce(async (searchQuery, page) => {
-      try {
+  // Memoized debounce functions to avoid recreation on every render
+  const debouncedSearchQuery = React.useMemo(
+    () =>
+      debounce((searchQuery, page) => {
         if (searchQuery.trim()) {
-          await dispatch(fetchMovies({ query: searchQuery, page }));
+          dispatch(fetchMovies({ query: searchQuery, page }));
+        } else {
+          dispatch(fetchMovies({ query: "", page: 1 }));
         }
-      } catch (error) {
-        console.error("Error fetching movies:", error);
-      }
-    }, 500),
+      }, 500),
     [dispatch]
   );
 
-  // Debounced function for page change
-  const debouncedSearchPage = useCallback(
-    debounce(async (page) => {
-      try {
-        await dispatch(fetchMovies({ query, page }));
-      } catch (error) {
-        console.error("Error fetching movies for page:", error);
-      }
-    }, 500),
+  const debouncedSearchPage = React.useMemo(
+    () =>
+      debounce((page) => {
+        dispatch(fetchMovies({ query, page }));
+      }, 500),
     [dispatch, query]
   );
 
@@ -53,11 +48,12 @@ const SearchBar = () => {
     const newQuery = e.target.value;
     setQuery(newQuery); // Update query state
     localStorage.setItem("query", newQuery); // Store query in localStorage
-    // Trigger search based on input
+
     if (newQuery.trim()) {
-      debouncedSearchQuery(newQuery, page);
+      debouncedSearchQuery(newQuery, page); // Trigger search based on input
     } else {
-      dispatch(fetchMovies({ query: "", page: 1 })); // Reset search if input is empty or spaces
+      // Handle case when query is cleared
+      dispatch(fetchMovies({ query: "", page: 1 })); // Fetch data with an empty query
     }
   };
 
@@ -72,7 +68,7 @@ const SearchBar = () => {
     if (query.trim()) {
       debouncedSearchQuery(query, page);
     }
-  }, [page, query, debouncedSearchQuery]);
+  }, [query, page, debouncedSearchQuery]);
 
   // Clean up debounced functions on component unmount
   useEffect(() => {

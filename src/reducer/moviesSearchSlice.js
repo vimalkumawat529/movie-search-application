@@ -20,10 +20,10 @@ export const fetchMovies = createAsyncThunk(
       }
       const data = await response.json();
       return {
-        results: data.results,
-        totalPages: data.total_pages,
-        totalResults: data.total_results,
-        page: data.page,
+        results: data?.results,
+        totalPages: data?.total_pages,
+        totalResults: data?.total_results,
+        page: data?.page,
       };
     } catch (error) {
       return { error: error.message };
@@ -51,17 +51,17 @@ const moviesSlice = createSlice({
       .addCase(fetchMovies.fulfilled, (state, action) => {
         state.loading = false;
         if (action.payload.page === 1) {
-          state.movies = action.payload.results; // Reset movies for page 1
+          state.movies = action?.payload?.results; // Reset movies for page 1
         } else {
-          state.movies = [...state.movies, ...action.payload.results]; // Append results for subsequent pages
+          state.movies = [...state?.movies, ...action?.payload?.results]; // Append results for subsequent pages
         }
-        state.totalPages = action.payload.totalPages;
-        state.totalResults = action.payload.totalResults;
-        state.page = action.payload.page;
+        state.totalPages = action?.payload?.totalPages;
+        state.totalResults = action?.payload?.totalResults;
+        state.page = action?.payload?.page;
       })
       .addCase(fetchMovies.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action?.payload;
       });
   },
 });
